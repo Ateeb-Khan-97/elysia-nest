@@ -1,6 +1,7 @@
 import {
 	AuthGuard,
 	CommonService,
+	EmailService,
 	GlobalExceptionFilter,
 	LoggingInterceptor,
 } from './common';
@@ -17,6 +18,7 @@ import { UserModule } from './modules/user/user.module';
 		LoggingInterceptor,
 		PrismaService,
 		CommonService,
+		EmailService,
 	],
 })
 export class AppModule {}

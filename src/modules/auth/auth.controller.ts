@@ -13,7 +13,7 @@ import {
 	UnauthorizedException,
 	type CookieJar,
 } from '@/core';
-import { CommonService, ResponseMapper } from '@/common';
+import { CommonService, EmailService, ResponseMapper } from '@/common';
 import { UserService } from '../user/user.service';
 import { AuthSchema } from './auth.schema';
 import { AuthService, TokenType } from './auth.service';
@@ -26,6 +26,7 @@ export class AuthController {
 		private readonly commonService: CommonService,
 		private readonly authService: AuthService,
 		private readonly userService: UserService,
+		private readonly emailService: EmailService,
 	) {}
 
 	@Public()
@@ -67,12 +68,15 @@ export class AuthController {
 				password: hashedPassword,
 				fullName: body.fullName,
 			});
-			// TODO: Send confirmation email
 			const confirmationToken = await this.authService.signPayload(
 				user.id,
 				TokenType.Confirmation,
 			);
-			console.log(confirmationToken);
+			await this.emailService.sendVerificationEmail({
+				to: user.email,
+				fullName: user.fullName,
+				token: confirmationToken,
+			});
 
 			return ResponseMapper({ status: 201, message: 'Sign up successful' });
 		} catch (error) {
