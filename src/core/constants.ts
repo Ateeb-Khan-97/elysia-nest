@@ -27,6 +27,11 @@ export const CONTROLLER_PUBLIC_METADATA = Symbol("elysia-nest:controller-public"
 /** Route is public (bypass global guards). Method-level. */
 export const METHOD_PUBLIC_METADATA = Symbol("elysia-nest:method-public");
 
+/** WebSocket endpoint path (class-level). Combined with controller path if present. */
+export const WEBSOCKET_PATH = Symbol("elysia-nest:websocket-path");
+/** WebSocket lifecycle handlers: open, message, close, drain. */
+export const WEBSOCKET_HANDLERS_METADATA = Symbol("elysia-nest:websocket-handlers");
+
 /** design:paramtypes is the standard key from reflect-metadata for ctor param types */
 export const DESIGN_PARAMTYPES = "design:paramtypes";
 
@@ -45,6 +50,13 @@ export interface ParamMetadata {
 export interface RouteMetadata {
 	method: "get" | "post" | "put" | "patch" | "delete";
 	path: string;
+	propertyKey: string;
+}
+
+export type WebSocketHandlerType = "open" | "message" | "close" | "drain";
+
+export interface WebSocketHandlerMetadata {
+	hook: WebSocketHandlerType;
 	propertyKey: string;
 }
 

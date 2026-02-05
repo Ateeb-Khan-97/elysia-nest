@@ -14,7 +14,10 @@ import {
 	METHOD_PUBLIC_METADATA,
 	PARAM_METADATA,
 	ROUTE_METADATA,
+	WEBSOCKET_HANDLERS_METADATA,
+	WEBSOCKET_PATH,
 } from './constants';
+import type { WebSocketHandlerMetadata } from './constants';
 import type {
 	CanActivate,
 	ExecutionContext,
@@ -325,6 +328,47 @@ export function registerRoutes(
 						elysia as { delete: (p: string, h: unknown, o?: unknown) => Elysia }
 					).delete(fullPath, handlerCast, hookOpt);
 					break;
+			}
+		}
+
+		// WebSocket gateway: same controller can expose a .ws() endpoint
+		const wsPath = Reflect.getMetadata(WEBSOCKET_PATH, controllerClass) as
+			| string
+			| undefined;
+		if (wsPath != null && wsPath !== "") {
+			const handlers = Reflect.getMetadata(
+				WEBSOCKET_HANDLERS_METADATA,
+				controllerClass,
+			) as WebSocketHandlerMetadata[] | undefined;
+			if (handlers?.length) {
+				const fullWsPath = normalizePath(controllerPath, wsPath);
+				const wsConfig: Record<string, (ws: unknown, ...args: unknown[]) => void | Promise<void>> = {};
+				for (const { hook, propertyKey } of handlers) {
+					const method = (controller as Record<string, (ws: unknown, ...args: unknown[]) => void | Promise<void>>)[
+						propertyKey
+					];
+					if (typeof method !== "function") continue;
+					const bound = method.bind(controller);
+					switch (hook) {
+						case "open":
+							wsConfig.open = (ws: unknown) => bound(ws);
+							break;
+						case "message":
+							wsConfig.message = (ws: unknown, message: unknown) => bound(ws, message);
+							break;
+						case "close":
+							wsConfig.close = (ws: unknown) => bound(ws);
+							break;
+						case "drain":
+							wsConfig.drain = (ws: unknown, code: number, reason: string) =>
+								bound(ws, code, reason);
+							break;
+					}
+				}
+				elysia = (elysia as { ws: (path: string, config: unknown) => Elysia }).ws(
+					fullWsPath,
+					wsConfig,
+				);
 			}
 		}
 	}

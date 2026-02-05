@@ -8,6 +8,7 @@ export { UseInterceptors } from './decorators/use-interceptors';
 export { UseFilters } from './decorators/use-filters';
 export { Public } from './decorators/public';
 export { Get, Post, Put, Patch, Delete } from './decorators/http-methods';
+export { WebSocket, WsOpen, WsMessage, WsClose, WsDrain } from './decorators/websocket';
 export { Body, Param, Query, Headers, CurrentUser, Cookie } from './decorators/params';
 export { Injectable } from './decorators/injectable';
 export type {

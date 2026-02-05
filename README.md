@@ -69,6 +69,43 @@ app.listen(3000);
 | `@Get(path?)`, `@Post(path?)`, `@Put(path?)`, `@Patch(path?)`, `@Delete(path?)` | Method | HTTP method + path |
 | `@Injectable()` | Class  | Register as provider (DI)                    |
 | `@Body()`, `@Param(key?)`, `@Query(key?)`, `@Headers(key?)` | Parameter | Bind handler args from context |
+| `@WebSocket(path?)` | Class | WebSocket gateway; path is combined with `@Controller()` path |
+| `@WsOpen()`, `@WsMessage()`, `@WsClose()`, `@WsDrain()` | Method | WebSocket lifecycle handlers (open, message, close, drain) |
+
+### WebSocket
+
+Use [Elysia’s WebSocket](https://elysiajs.com/patterns/websocket) from a controller with `@WebSocket()` and lifecycle decorators:
+
+```ts
+import { Controller, WebSocket, WsMessage, WsOpen, createApp, Module } from "elysia-nest";
+
+@Controller()
+@WebSocket("/ws")
+class WsGateway {
+  @WsOpen()
+  onOpen(ws: { send: (data: string | Buffer) => void }) {
+    ws.send("connected");
+  }
+
+  @WsMessage()
+  onMessage(ws: { send: (data: string | Buffer) => void }, message: unknown) {
+    ws.send(JSON.stringify({ echo: message }));
+  }
+}
+
+@Module({ controllers: [WsGateway] })
+class AppModule {}
+
+const app = createApp(AppModule);
+app.listen(3000);
+// Connect to ws://localhost:3000/ws
+```
+
+- **@WebSocket(path)** – Endpoint path (e.g. `"/ws"`). If the class also has `@Controller("/api")`, the socket is at `/api/ws`.
+- **@WsOpen()** – `(ws) => void` – connection opened.
+- **@WsMessage()** – `(ws, message) => void` – message received (JSON parsed by Elysia when applicable).
+- **@WsClose()** – `(ws) => void` – connection closed.
+- **@WsDrain()** – `(ws, code, reason) => void` – backpressure drain.
 
 ## API
 
