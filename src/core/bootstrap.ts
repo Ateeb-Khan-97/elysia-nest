@@ -3,6 +3,7 @@ import { openapi } from '@elysiajs/openapi';
 import {
 	CONTROLLER_PATH,
 	ROUTE_METADATA,
+	WEBSOCKET_PATH,
 	type Constructor,
 	type RouteMetadata,
 } from './constants';
@@ -20,16 +21,25 @@ function logRegisteredRoutes(container: ResolvedApp): void {
 	for (const { controllerClass } of container.getControllers()) {
 		const controllerPath =
 			(Reflect.getMetadata(CONTROLLER_PATH, controllerClass) as string | undefined) ?? '';
+		const wsPath = Reflect.getMetadata(WEBSOCKET_PATH, controllerClass) as
+			| string
+			| undefined;
 		const routes =
 			(Reflect.getMetadata(ROUTE_METADATA, controllerClass) as
 				| RouteMetadata[]
 				| undefined) ?? [];
 		const controllerName = controllerClass.name;
-		logger.log(`${controllerName} {${controllerPath || '/'}}`);
+		const fullWsPath =
+			wsPath != null && wsPath !== '' ? normalizePath(controllerPath, wsPath) : '';
+		const displayPath = controllerPath || fullWsPath || '/';
+		logger.log(`${controllerName} {${displayPath}}`);
 		for (const route of routes) {
 			const fullPath = normalizePath(controllerPath, route.path);
 			const method = route.method.toUpperCase();
 			logger.log(`(${method} ${fullPath})`);
+		}
+		if (fullWsPath) {
+			logger.log(`(WS ${fullWsPath})`);
 		}
 	}
 }
