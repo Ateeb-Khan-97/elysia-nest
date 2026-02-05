@@ -1,5 +1,6 @@
 import {
 	AuthGuard,
+	BackgroundTasksService,
 	CommonService,
 	EmailService,
 	GlobalExceptionFilter,
@@ -19,6 +20,7 @@ import { UserModule } from './modules/user/user.module';
 		PrismaService,
 		CommonService,
 		EmailService,
+		BackgroundTasksService,
 	],
 })
 export class AppModule {}

@@ -1,3 +1,4 @@
+export { BackgroundTasksService } from './services/background-tasks.service';
 export { CommonService } from './services/common.service';
 export { EmailService } from './services/email.service';
 export { GlobalExceptionFilter } from './filters/global-exception.filter';

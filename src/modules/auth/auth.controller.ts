@@ -13,7 +13,12 @@ import {
 	UnauthorizedException,
 	type CookieJar,
 } from '@/core';
-import { CommonService, EmailService, ResponseMapper } from '@/common';
+import {
+	BackgroundTasksService,
+	CommonService,
+	EmailService,
+	ResponseMapper,
+} from '@/common';
 import { UserService } from '../user/user.service';
 import { AuthSchema } from './auth.schema';
 import { AuthService, TokenType } from './auth.service';
@@ -27,6 +32,7 @@ export class AuthController {
 		private readonly authService: AuthService,
 		private readonly userService: UserService,
 		private readonly emailService: EmailService,
+		private readonly backgroundTasks: BackgroundTasksService,
 	) {}
 
 	@Public()
@@ -72,11 +78,13 @@ export class AuthController {
 				user.id,
 				TokenType.Confirmation,
 			);
-			await this.emailService.sendVerificationEmail({
-				to: user.email,
-				fullName: user.fullName,
-				token: confirmationToken,
-			});
+			this.backgroundTasks.run(() =>
+				this.emailService.sendVerificationEmail({
+					to: user.email,
+					fullName: user.fullName,
+					token: confirmationToken,
+				}),
+			);
 
 			return ResponseMapper({ status: 201, message: 'Sign up successful' });
 		} catch (error) {
