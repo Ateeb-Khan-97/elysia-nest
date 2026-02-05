@@ -13,8 +13,7 @@ import {
 	UnauthorizedException,
 	type CookieJar,
 } from '@/core';
-import { CommonService } from '@/common/common.service';
-import { ResponseMapper } from '@/mappers/response.mapper';
+import { CommonService, ResponseMapper } from '@/common';
 import { UserService } from '../user/user.service';
 import { AuthSchema } from './auth.schema';
 import { AuthService, TokenType } from './auth.service';

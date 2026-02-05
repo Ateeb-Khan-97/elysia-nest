@@ -1,9 +1,7 @@
 import { AppModule } from './app.module';
+import { AuthGuard, GlobalExceptionFilter, LoggingInterceptor } from './common';
 import { env } from './config/env.config';
 import { createApp, Logger } from './core';
-import { GlobalExceptionFilter } from './filters/global-exception.filter';
-import { AuthGuard } from './guard/auth.guard';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 async function bootstrap(): Promise<void> {
 	const logger = new Logger('Bootstrap');

@@ -9,8 +9,7 @@ import {
 	NotFoundException,
 	Put,
 } from '@/core';
-import { CommonService } from '@/common/common.service';
-import { ResponseMapper } from '@/mappers/response.mapper';
+import { CommonService, ResponseMapper } from '@/common';
 import { UserService } from './user.service';
 import { UserSchema } from './user.schema';
 
