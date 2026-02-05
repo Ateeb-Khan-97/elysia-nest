@@ -4,7 +4,7 @@ import {
 	GlobalExceptionFilter,
 	LoggingInterceptor,
 } from './common';
-import { PrismaService } from './config/db.config';
+import { PrismaService } from './common/services/prisma.service';
 import { Module } from './core';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';

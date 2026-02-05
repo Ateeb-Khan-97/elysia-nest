@@ -1,4 +1,4 @@
-import { PrismaService } from '@/config/db.config';
+import { PrismaService } from '@/common/services/prisma.service';
 import { Injectable } from '@/core';
 import type { Prisma, User } from 'generated/prisma/client';
 

@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from 'generated/prisma/client';
 import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@/core';
-import { env } from './env.config';
+import { env } from '@/config/env.config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {

@@ -27,7 +27,6 @@ export class UserController {
 		const user = await this.userService.findOneById(userId);
 		if (!user) throw new NotFoundException('User not found');
 		return ResponseMapper({
-			status: 200,
 			message: 'Profile fetched successfully',
 			data: this.commonService.exclude(user, ['password', 'isConfirmed', 'deletedAt']),
 		});
@@ -41,7 +40,6 @@ export class UserController {
 		try {
 			const user = await this.userService.update(userId, body);
 			return ResponseMapper({
-				status: 200,
 				message: 'Profile updated successfully',
 				data: this.commonService.exclude(user, ['password', 'isConfirmed', 'deletedAt']),
 			});

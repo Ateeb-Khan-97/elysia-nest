@@ -43,7 +43,6 @@ export class AuthController {
 		const [accessToken, refreshToken] = await this.authService.login(user.id, cookie);
 
 		return ResponseMapper({
-			status: 200,
 			message: 'Sign in successful',
 			data: {
 				accessToken,
@@ -98,7 +97,6 @@ export class AuthController {
 			const [accessToken, refreshToken] = await this.authService.login(userId, cookie);
 
 			return ResponseMapper({
-				status: 200,
 				message: 'Session refreshed',
 				data: {
 					accessToken,
@@ -120,7 +118,7 @@ export class AuthController {
 	async signOut(@Cookie() cookie: CookieJar) {
 		cookie.access_token?.remove();
 		cookie.refresh_token?.remove();
-		return ResponseMapper({ status: 200, message: 'Sign out successful' });
+		return ResponseMapper({ message: 'Sign out successful' });
 	}
 
 	@Public()
@@ -138,6 +136,6 @@ export class AuthController {
 		const user = await this.userService.findOneById(payload.id);
 		if (!user) throw new NotFoundException('User not found');
 		await this.userService.update(payload.id, { isConfirmed: true });
-		return ResponseMapper({ status: 200, message: 'Email confirmed' });
+		return ResponseMapper({ message: 'Email confirmed' });
 	}
 }
