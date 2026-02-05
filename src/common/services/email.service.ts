@@ -1,13 +1,21 @@
 import nodemailer from 'nodemailer';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement } from 'react';
 import { env } from '@/config/env.config';
-import {
-	buildVerificationHtml,
-	buildVerificationText,
-	type VerificationEmailOptions,
-} from '@/common/email-templates/verification-email';
+import VerificationEmail from '@/emails/verification-email';
 import { Injectable, Logger } from '@/core';
 
-export type SendVerificationEmailOptions = VerificationEmailOptions & { to: string };
+export type SendEmailOptions = {
+	to: string;
+	subject: string;
+	html: string;
+};
+
+export type SendVerificationEmailOptions = {
+	to: string;
+	fullName: string;
+	token: string;
+};
 
 @Injectable()
 export class EmailService {
@@ -22,19 +30,28 @@ export class EmailService {
 		},
 	});
 
+	private async sendEmail(options: SendEmailOptions): Promise<void> {
+		const { to, subject, html } = options;
+		try {
+			await this.transporter.sendMail({
+				from: `"${env.GOOGLE_APP_EMAIL.split('@')[0]}" <${env.GOOGLE_APP_EMAIL}>`,
+				to,
+				subject,
+				html,
+			});
+			this.logger.debug(`Email sent to ${to}`);
+		} catch (error) {
+			this.logger.error(`Failed to send email to ${to}: ${error}`);
+		}
+	}
+
 	async sendVerificationEmail(options: SendVerificationEmailOptions): Promise<void> {
 		const { to, fullName, token } = options;
-		const html = buildVerificationHtml({ fullName, token });
-		const text = buildVerificationText({ fullName, token });
-
-		await this.transporter.sendMail({
-			from: `"${env.GOOGLE_APP_EMAIL.split('@')[0]}" <${env.GOOGLE_APP_EMAIL}>`,
-			to,
-			subject: 'Verify your email',
-			text,
-			html,
-		});
-
-		this.logger.debug(`Verification email sent to ${to}`);
+		const base = env.APP_URL.replace(/\/$/, '');
+		const verifyUrl = `${base}/verify-email?token=${encodeURIComponent(token)}`;
+		const html = renderToStaticMarkup(
+			createElement(VerificationEmail, { fullName, verifyUrl }),
+		);
+		await this.sendEmail({ to, subject: 'Verify your email', html });
 	}
 }
