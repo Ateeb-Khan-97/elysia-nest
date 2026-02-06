@@ -96,7 +96,7 @@ test('OpenAPI spec at openapiPath/json includes controller routes', async () => 
 
 	const res = await elysia.handle(new Request('http://localhost/api/docs/json'));
 	expect(res.status).toBe(200);
-	const spec = await res.json();
+	const spec = (await res.json()) as { openapi: string; paths: Record<string, unknown> };
 	expect(spec.openapi).toBe('3.0.3');
 	expect(spec.paths).toBeDefined();
 	expect(Object.keys(spec.paths).some((p) => p.startsWith('/api'))).toBe(true);
