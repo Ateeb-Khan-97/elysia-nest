@@ -1,0 +1,30 @@
+# Dependencies and output (reinstalled/built in image)
+node_modules
+dist
+out
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Git and IDE
+.git
+.gitignore
+.idea
+.cursor
+
+# Docs and tooling (not needed in image)
+memory-bank
+*.md
+!README.md
+
+# Tests and dev
+coverage
+*.test.ts
+*.spec.ts
+
+# Misc
+.DS_Store
+*.log
+*.tgz
