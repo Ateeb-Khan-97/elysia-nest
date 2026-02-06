@@ -1,7 +1,7 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from 'generated/prisma/client';
 import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@/core';
-import { env } from '@/config/env.config';
+import { env, isProduction } from '@/config/env.config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -11,12 +11,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 		const adapter = new PrismaPg({ connectionString: env.DATABASE_URL });
 		super({
 			adapter,
-			log: [
-				{ emit: 'event', level: 'warn' },
-				{ emit: 'event', level: 'error' },
-				{ emit: 'event', level: 'query' },
-				{ emit: 'event', level: 'info' },
-			],
+			log: isProduction
+				? undefined
+				: [
+						{ emit: 'event', level: 'warn' },
+						{ emit: 'event', level: 'error' },
+						{ emit: 'event', level: 'query' },
+						{ emit: 'event', level: 'info' },
+					],
 		});
 		this.$on('warn' as never, (event: Prisma.LogEvent) => {
 			this.logger.warn(event.message);

@@ -114,11 +114,7 @@ function buildArgs(
 				args.push(context.user);
 				break;
 			case 'cookie':
-				args.push(
-					meta.key && context.cookie
-						? context.cookie[meta.key]
-						: context.cookie,
-				);
+				args.push(meta.key && context.cookie ? context.cookie[meta.key] : context.cookie);
 				break;
 			default:
 				args.push(undefined);
@@ -335,33 +331,38 @@ export function registerRoutes(
 		const wsPath = Reflect.getMetadata(WEBSOCKET_PATH, controllerClass) as
 			| string
 			| undefined;
-		if (wsPath != null && wsPath !== "") {
+		if (wsPath != null && wsPath !== '') {
 			const handlers = Reflect.getMetadata(
 				WEBSOCKET_HANDLERS_METADATA,
 				controllerClass,
 			) as WebSocketHandlerMetadata[] | undefined;
 			if (handlers?.length) {
 				const fullWsPath = normalizePath(controllerPath, wsPath);
-				const wsConfig: Record<string, (ws: unknown, ...args: unknown[]) => void | Promise<void>> = {};
+				const wsConfig: Record<
+					string,
+					(ws: unknown, ...args: unknown[]) => void | Promise<void>
+				> = {};
 				for (const { hook, propertyKey } of handlers) {
-					const method = (controller as Record<string, (ws: unknown, ...args: unknown[]) => void | Promise<void>>)[
-						propertyKey
-					];
-					if (typeof method !== "function") continue;
+					const method = (
+						controller as Record<
+							string,
+							(ws: unknown, ...args: unknown[]) => void | Promise<void>
+						>
+					)[propertyKey];
+					if (typeof method !== 'function') continue;
 					const bound = method.bind(controller);
 					switch (hook) {
-						case "open":
+						case 'open':
 							wsConfig.open = (ws: unknown) => bound(ws);
 							break;
-						case "message":
+						case 'message':
 							wsConfig.message = (ws: unknown, message: unknown) => bound(ws, message);
 							break;
-						case "close":
+						case 'close':
 							wsConfig.close = (ws: unknown) => bound(ws);
 							break;
-						case "drain":
-							wsConfig.drain = (ws: unknown, code: number, reason: string) =>
-								bound(ws, code, reason);
+						case 'drain':
+							wsConfig.drain = (ws: unknown, ...args: unknown[]) => bound(ws, args);
 							break;
 					}
 				}

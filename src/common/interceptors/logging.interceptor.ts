@@ -15,7 +15,7 @@ export class LoggingInterceptor implements NestInterceptor {
 		try {
 			const result = await next();
 			const ms = Date.now() - start;
-			this.logger.log(`${method} ${path} +${ms}ms`);
+			this.logger.debug(`${method} ${path} +${ms}ms`);
 			return result;
 		} catch (error) {
 			const ms = Date.now() - start;
