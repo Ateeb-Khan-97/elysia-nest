@@ -10,7 +10,7 @@ export const envSchema = z.object({
 	JWT_CONFIRMATION_EXPIRES_IN: z.coerce.number().positive().default(86400),
 	GOOGLE_APP_PASSWORD: z.string(),
 	GOOGLE_APP_EMAIL: z.email(),
-	APP_URL: z.string().url(),
+	APP_URL: z.url(),
 });
 
 export const env = (() => {

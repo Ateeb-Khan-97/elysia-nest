@@ -99,7 +99,7 @@ export class AuthController {
 		@Body(AuthSchema.RefreshAccessTokenSchema) body: AuthSchema.RefreshAccessTokenSchema,
 		@Cookie() cookie: CookieJar,
 	) {
-		const rt = body.refreshToken ?? (cookie.refresh_token?.value as string | undefined);
+		const rt = body?.refreshToken ?? (cookie.refresh_token?.value as string | undefined);
 		if (!rt) throw new BadRequestException('Refresh token is required');
 		try {
 			const { id: userId } = await this.authService.verifyToken(rt, TokenType.Refresh);

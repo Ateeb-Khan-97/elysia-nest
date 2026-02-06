@@ -15,9 +15,9 @@ export namespace AuthSchema {
 	});
 	export type SignUpSchema = typeof SignUpSchema.static;
 
-	export const RefreshAccessTokenSchema = t.Object({
-		refreshToken: t.Optional(t.String({ minLength: 50 })),
-	});
+	export const RefreshAccessTokenSchema = t.Optional(
+		t.Object({ refreshToken: t.Optional(t.String({ minLength: 50 })) }),
+	);
 	export type RefreshAccessTokenSchema = typeof RefreshAccessTokenSchema.static;
 
 	export const ConfirmEmailSchema = t.Object({
