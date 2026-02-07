@@ -255,10 +255,9 @@ export function registerRoutes(
 					backgroundTasks?: unknown;
 				}) {
 					const args = buildArgs(context, paramMetadata, route.propertyKey);
-					const gen = (method as (...args: unknown[]) => Generator<unknown> | AsyncGenerator<unknown>).apply(
-						controller,
-						args,
-					);
+					const gen = (
+						method as (...args: unknown[]) => Generator<unknown> | AsyncGenerator<unknown>
+					).apply(controller, args);
 					for await (const value of gen) {
 						yield sse(value as string | Record<string, unknown>);
 					}

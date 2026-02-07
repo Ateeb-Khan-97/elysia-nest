@@ -6,11 +6,7 @@ export class HttpException extends Error {
 	readonly statusCode: number;
 	readonly response?: unknown;
 
-	constructor(
-		message: string,
-		statusCode: number,
-		response?: unknown,
-	) {
+	constructor(message: string, statusCode: number, response?: unknown) {
 		super(message);
 		this.name = 'HttpException';
 		this.statusCode = statusCode;

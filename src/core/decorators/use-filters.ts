@@ -1,8 +1,5 @@
-import type { Constructor } from "../constants";
-import {
-	CONTROLLER_FILTERS_METADATA,
-	METHOD_FILTERS_METADATA,
-} from "../constants";
+import type { Constructor } from '../constants';
+import { CONTROLLER_FILTERS_METADATA, METHOD_FILTERS_METADATA } from '../constants';
 
 function setFilters(
 	target: object,
@@ -28,11 +25,11 @@ function setFilters(
  * Filters must be registered as providers if they have dependencies.
  */
 export function UseFilters(...filters: Constructor[]): ClassDecorator & MethodDecorator {
-	return function (
+	return ((
 		target: object,
 		propertyKey?: string | symbol,
 		_descriptor?: PropertyDescriptor,
-	) {
+	) => {
 		setFilters(target, filters, propertyKey);
-	} as ClassDecorator & MethodDecorator;
+	}) as ClassDecorator & MethodDecorator;
 }

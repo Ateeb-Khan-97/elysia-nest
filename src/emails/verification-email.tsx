@@ -1,11 +1,24 @@
-import { Body, Button, Container, Head, Heading, Hr, Html, Section, Text } from '@react-email/components';
+import {
+	Body,
+	Button,
+	Container,
+	Head,
+	Heading,
+	Hr,
+	Html,
+	Section,
+	Text,
+} from '@react-email/components';
 
 export type VerificationEmailProps = {
 	fullName: string;
 	verifyUrl: string;
 };
 
-export default function VerificationEmail({ fullName, verifyUrl }: VerificationEmailProps) {
+export default function VerificationEmail({
+	fullName,
+	verifyUrl,
+}: VerificationEmailProps) {
 	return (
 		<Html>
 			<Head />

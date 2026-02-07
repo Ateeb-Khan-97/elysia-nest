@@ -3,7 +3,7 @@ import { PARAM_METADATA } from '../constants';
 
 function createParamDecorator(type: ParamMetadata['type']) {
 	return (key?: string): ParameterDecorator =>
-		function (target: object, propertyKey: string | symbol, parameterIndex: number) {
+		(target: object, propertyKey: string | symbol, parameterIndex: number) => {
 			const existing: Record<number, ParamMetadata> =
 				Reflect.getMetadata(PARAM_METADATA, target, propertyKey) ?? {};
 			existing[parameterIndex] = { type, key };
@@ -15,7 +15,7 @@ function createParamDecorator(type: ParamMetadata['type']) {
  * Body parameter. Optionally pass an Elysia t schema for validation:
  * @Body(LoginSchema) body: typeof LoginSchema.static
  */
-export function Body(schema?: TSchema | any): ParameterDecorator;
+export function Body(schema?: TSchema | Record<string, unknown>): ParameterDecorator;
 export function Body(
 	target: object,
 	propertyKey: string | symbol,
@@ -25,7 +25,7 @@ export function Body(
 	schemaOrTarget?: TSchema | object,
 	propertyKey?: string | symbol,
 	parameterIndex?: number,
-): ParameterDecorator | void {
+): ParameterDecorator | undefined {
 	if (propertyKey !== undefined && parameterIndex !== undefined) {
 		// @Body() without schema
 		const target = schemaOrTarget as object;
@@ -61,7 +61,7 @@ export function Query(
 	keyOrSchemaOrTarget?: string | TSchema | object,
 	propertyKey?: string | symbol,
 	parameterIndex?: number,
-): ParameterDecorator | void {
+): ParameterDecorator | undefined {
 	if (propertyKey !== undefined && parameterIndex !== undefined) {
 		// @Query() without key/schema
 		const target = keyOrSchemaOrTarget as object;

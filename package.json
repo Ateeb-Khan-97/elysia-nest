@@ -7,7 +7,12 @@
 	"scripts": {
 		"dev": "bun --watch src/main.ts",
 		"build": "rm -rf dist && bun build --compile --minify-whitespace --minify-syntax --target bun --outfile dist/server src/main.ts",
-		"email": "email dev --dir src/emails"
+		"email": "email dev --dir src/emails",
+		"prisma:generate": "bunx prisma generate",
+		"prisma:migrate": "bunx prisma migrate dev",
+		"prisma:studio": "bunx prisma studio",
+		"format": "biome format --write",
+		"lint": "biome lint ./src"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.13",

@@ -1,8 +1,5 @@
-import type { Constructor } from "../constants";
-import {
-	CONTROLLER_GUARDS_METADATA,
-	METHOD_GUARDS_METADATA,
-} from "../constants";
+import type { Constructor } from '../constants';
+import { CONTROLLER_GUARDS_METADATA, METHOD_GUARDS_METADATA } from '../constants';
 
 function setGuards(
 	target: object,
@@ -28,11 +25,11 @@ function setGuards(
  * Guards must be registered as providers if they have dependencies.
  */
 export function UseGuards(...guards: Constructor[]): ClassDecorator & MethodDecorator {
-	return function (
+	return ((
 		target: object,
 		propertyKey?: string | symbol,
 		_descriptor?: PropertyDescriptor,
-	) {
+	) => {
 		setGuards(target, guards, propertyKey);
-	} as ClassDecorator & MethodDecorator;
+	}) as ClassDecorator & MethodDecorator;
 }

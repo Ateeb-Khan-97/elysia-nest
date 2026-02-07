@@ -1,8 +1,8 @@
-import type { Constructor } from "../constants";
+import type { Constructor } from '../constants';
 import {
 	CONTROLLER_INTERCEPTORS_METADATA,
 	METHOD_INTERCEPTORS_METADATA,
-} from "../constants";
+} from '../constants';
 
 function setInterceptors(
 	target: object,
@@ -30,11 +30,11 @@ function setInterceptors(
 export function UseInterceptors(
 	...interceptors: Constructor[]
 ): ClassDecorator & MethodDecorator {
-	return function (
+	return ((
 		target: object,
 		propertyKey?: string | symbol,
 		_descriptor?: PropertyDescriptor,
-	) {
+	) => {
 		setInterceptors(target, interceptors, propertyKey);
-	} as ClassDecorator & MethodDecorator;
+	}) as ClassDecorator & MethodDecorator;
 }

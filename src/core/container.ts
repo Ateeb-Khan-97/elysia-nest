@@ -1,9 +1,6 @@
-import "reflect-metadata";
-import type { Constructor, ModuleMetadata } from "./constants";
-import {
-	DESIGN_PARAMTYPES,
-	MODULE_METADATA,
-} from "./constants";
+import 'reflect-metadata';
+import type { Constructor, ModuleMetadata } from './constants';
+import { DESIGN_PARAMTYPES, MODULE_METADATA } from './constants';
 
 /**
  * Collect all modules reachable from the root (via imports).
@@ -12,7 +9,8 @@ function collectModules(rootModule: Constructor): Constructor[] {
 	const visited = new Set<Constructor>();
 	const stack: Constructor[] = [rootModule];
 	while (stack.length > 0) {
-		const mod = stack.pop()!;
+		const mod = stack.pop();
+		if (mod === undefined) break;
 		if (visited.has(mod)) continue;
 		visited.add(mod);
 		const meta: ModuleMetadata | undefined = Reflect.getMetadata(MODULE_METADATA, mod);
@@ -45,9 +43,7 @@ function collectProviders(modules: Constructor[]): Set<Constructor> {
 /**
  * Collect controller classes per module (module class -> controller classes).
  */
-function collectControllers(
-	modules: Constructor[],
-): Map<Constructor, Constructor[]> {
+function collectControllers(modules: Constructor[]): Map<Constructor, Constructor[]> {
 	const map = new Map<Constructor, Constructor[]>();
 	for (const mod of modules) {
 		const meta: ModuleMetadata | undefined = Reflect.getMetadata(MODULE_METADATA, mod);
