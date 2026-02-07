@@ -78,7 +78,7 @@ export class AuthController {
 				user.id,
 				TokenType.Confirmation,
 			);
-			this.backgroundTasks.run(() =>
+			this.backgroundTasks.run(
 				this.emailService.sendVerificationEmail({
 					to: user.email,
 					fullName: user.fullName,

@@ -8,11 +8,17 @@ export class BackgroundTasksService {
 	 * Schedules an async task to run in the background without blocking the caller.
 	 * Errors are logged and do not crash the process.
 	 */
-	run(task: () => Promise<void>): void {
+	run(task: Promise<void> | (() => Promise<void>)): void {
 		queueMicrotask(() => {
-			task().catch((err) => {
-				this.logger.error('Background task failed', err);
-			});
+			if (typeof task === 'function') {
+				task().catch((err) => {
+					this.logger.error('Background task failed', err);
+				});
+			} else {
+				task.catch((err) => {
+					this.logger.error('Background task failed', err);
+				});
+			}
 		});
 	}
 }
