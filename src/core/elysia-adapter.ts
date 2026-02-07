@@ -1,4 +1,4 @@
-import { Elysia } from 'elysia';
+import { Elysia, sse } from 'elysia';
 import type { ParamMetadata } from './constants';
 import type { Constructor } from './constants';
 import {
@@ -29,6 +29,12 @@ import type { ResolvedApp } from './container';
 function normalizePath(...segments: string[]): string {
 	const joined = segments.filter(Boolean).join('/').replace(/\/+/g, '/');
 	return joined.startsWith('/') ? joined : `/${joined}`;
+}
+
+function isGeneratorFunction(fn: unknown): boolean {
+	if (typeof fn !== 'function') return false;
+	const name = (fn as { constructor?: { name?: string } }).constructor?.name ?? '';
+	return name === 'GeneratorFunction' || name === 'AsyncGeneratorFunction';
 }
 
 function getBodySchema(
@@ -216,17 +222,20 @@ export function registerRoutes(
 			);
 			const filterClasses = [...globalExceptionFilters, ...routeFilterClasses];
 
+			const method = (controller as Record<string, (...args: unknown[]) => unknown>)[
+				route.propertyKey
+			];
+			const isGenerator = typeof method === 'function' && isGeneratorFunction(method);
+
 			const innerHandler = (context: {
 				body: unknown;
 				params: Record<string, string>;
 				query: Record<string, string>;
 				headers: Record<string, string | undefined>;
 				cookie?: Record<string, unknown>;
+				backgroundTasks?: unknown;
 			}) => {
 				const args = buildArgs(context, paramMetadata, route.propertyKey);
-				const method = (controller as Record<string, (...args: unknown[]) => unknown>)[
-					route.propertyKey
-				];
 				if (typeof method !== 'function') {
 					throw new Error(
 						`elysia-nest: controller method ${route.propertyKey} is not a function`,
@@ -235,22 +244,41 @@ export function registerRoutes(
 				return method.apply(controller, args);
 			};
 
-			let handler: (context: unknown) => unknown = innerHandler as (
-				context: unknown,
-			) => unknown;
-			if (interceptorClasses.length > 0) {
-				handler = (context: unknown) => {
-					const ctx = context as ExecutionContext;
-					let chain = (): Promise<unknown> => Promise.resolve(innerHandler(ctx));
-					for (let i = interceptorClasses.length - 1; i >= 0; i--) {
-						const InterceptorClass = interceptorClasses[i];
-						if (!InterceptorClass) continue;
-						const interceptor = resolveInstance<NestInterceptor>(app, InterceptorClass);
-						const next = chain;
-						chain = () => interceptor.intercept(ctx, next);
+			let handler: (context: unknown) => unknown;
+			if (isGenerator) {
+				handler = async function* (context: {
+					body: unknown;
+					params: Record<string, string>;
+					query: Record<string, string>;
+					headers: Record<string, string | undefined>;
+					cookie?: Record<string, unknown>;
+					backgroundTasks?: unknown;
+				}) {
+					const args = buildArgs(context, paramMetadata, route.propertyKey);
+					const gen = (method as (...args: unknown[]) => Generator<unknown> | AsyncGenerator<unknown>).apply(
+						controller,
+						args,
+					);
+					for await (const value of gen) {
+						yield sse(value as string | Record<string, unknown>);
 					}
-					return chain();
-				};
+				} as (context: unknown) => unknown;
+			} else {
+				handler = innerHandler as (context: unknown) => unknown;
+				if (interceptorClasses.length > 0) {
+					handler = (context: unknown) => {
+						const ctx = context as ExecutionContext;
+						let chain = (): Promise<unknown> => Promise.resolve(innerHandler(ctx));
+						for (let i = interceptorClasses.length - 1; i >= 0; i--) {
+							const InterceptorClass = interceptorClasses[i];
+							if (!InterceptorClass) continue;
+							const interceptor = resolveInstance<NestInterceptor>(app, InterceptorClass);
+							const next = chain;
+							chain = () => interceptor.intercept(ctx, next);
+						}
+						return chain();
+					};
+				}
 			}
 
 			const hook: {

@@ -72,6 +72,32 @@ app.listen(3000);
 | `@WebSocket(path?)` | Class | WebSocket gateway; path is combined with `@Controller()` path |
 | `@WsOpen()`, `@WsMessage()`, `@WsClose()`, `@WsDrain()` | Method | WebSocket lifecycle handlers (open, message, close, drain) |
 
+### Server-Sent Events (SSE)
+
+If a controller handler is a **generator** (`function*` or `async function*`), whatever you `yield` is sent as SSE (wrapped with Elysia’s `sse()`). Works with **any HTTP method** (GET, POST, etc.):
+
+```ts
+import { Controller, Get, Post, Public } from "elysia-nest";
+
+@Controller("/api/events")
+export class EventsController {
+  @Public()
+  @Get("stream")
+  async *streamGet() {
+    yield "hello";
+    yield { event: "message", data: { time: new Date().toISOString() } };
+  }
+
+  @Public()
+  @Post("stream")
+  async *streamPost() {
+    yield { event: "started", data: {} };
+  }
+}
+```
+
+- **GET /api/events/stream** or **POST /api/events/stream** → `text/event-stream`; consume with `EventSource` or `fetch` + `ReadableStream`.
+
 ### WebSocket
 
 Use [Elysia’s WebSocket](https://elysiajs.com/patterns/websocket) from a controller with `@WebSocket()` and lifecycle decorators:
