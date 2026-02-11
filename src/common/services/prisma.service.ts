@@ -20,6 +20,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 						{ emit: 'event', level: 'info' },
 					],
 		});
+		this.$on('connect' as never, () => {
+			this.logger.log('Database connected');
+		});
+		this.$on('disconnect' as never, () => {
+			this.logger.log('Database disconnected');
+		});
 		this.$on('warn' as never, (event: Prisma.LogEvent) => {
 			this.logger.warn(event.message);
 		});
@@ -39,9 +45,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 	async onModuleInit(): Promise<void> {
 		try {
 			await this.$executeRawUnsafe('SELECT 1');
-			this.logger.log('Prisma connected');
+			this.logger.log('Database connected');
 		} catch (error) {
-			this.logger.error('Prisma connection failed', error);
+			this.logger.error('Database connection failed', error);
 			process.exit(1);
 		}
 	}
@@ -49,9 +55,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 	async onModuleDestroy(): Promise<void> {
 		try {
 			await this.$disconnect();
-			this.logger.log('Prisma disconnected');
+			this.logger.log('Database disconnected');
 		} catch (error) {
-			this.logger.error('Prisma disconnection failed', error);
+			this.logger.error('Database disconnection failed', error);
 			process.exit(1);
 		}
 	}

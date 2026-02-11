@@ -1,12 +1,12 @@
 import { AppModule } from './app.module';
 import { AuthGuard, GlobalExceptionFilter, LoggingInterceptor } from './common';
-import { env } from './config/env.config';
+import { env, isProduction } from './config/env.config';
 import { createApp, Logger } from './core';
 
 async function bootstrap(): Promise<void> {
 	const logger = new Logger('Bootstrap');
 	const app = createApp(AppModule, {
-		openapiPath: '/api/docs',
+		openapiPath: isProduction ? false : '/api/docs',
 		globalGuards: [AuthGuard],
 		globalInterceptors: [LoggingInterceptor],
 		globalExceptionFilters: [GlobalExceptionFilter],
@@ -15,7 +15,9 @@ async function bootstrap(): Promise<void> {
 	await app.init();
 	const server = app.listen(env.PORT);
 	logger.log(`Application running on http://localhost:${env.PORT}`);
-	logger.log(`OpenAPI docs: http://localhost:${env.PORT}/api/docs`);
+	if (!isProduction) {
+		logger.log(`OpenAPI docs: http://localhost:${env.PORT}/api/docs`);
+	}
 
 	const shutdown = async (): Promise<void> => {
 		logger.log('Shutting down...');
