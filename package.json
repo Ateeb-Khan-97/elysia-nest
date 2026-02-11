@@ -27,7 +27,7 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
-		"@elysiajs/openapi": "^1.4.0",
+		"@elysiajs/openapi": "^1.4.14",
 		"@prisma/adapter-pg": "^7.3.0",
 		"@prisma/client": "^7.3.0",
 		"@react-email/components": "^1.0.7",

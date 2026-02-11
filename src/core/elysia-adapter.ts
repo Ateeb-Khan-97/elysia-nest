@@ -174,6 +174,21 @@ export function registerRoutes(
 	const globalExceptionFilters = options?.globalExceptionFilters ?? [];
 	const openapiSecurityScheme = options?.openapiSecurityScheme;
 
+	// Global exception filters run in Elysia's app-level onError (catches all errors including validation)
+	if (globalExceptionFilters.length > 0) {
+		elysia = (elysia as { onError: (fn: (ctx: { error: Error; [k: string]: unknown }) => Promise<Response | unknown>) => Elysia }).onError(
+			async (errContext: { error: Error; code?: string; [k: string]: unknown }) => {
+				const exception = errContext.error;
+				for (const FilterClass of globalExceptionFilters) {
+					const filter = resolveInstance<ExceptionFilter>(app, FilterClass);
+					const res = await filter.catch(exception, errContext);
+					if (res != null) return res;
+				}
+				throw exception;
+			},
+		) as Elysia;
+	}
+
 	for (const { controller, controllerClass } of app.getControllers()) {
 		const controllerPath =
 			(Reflect.getMetadata(CONTROLLER_PATH, controllerClass) as string | undefined) ?? '';
@@ -220,7 +235,8 @@ export function registerRoutes(
 				CONTROLLER_FILTERS_METADATA,
 				METHOD_FILTERS_METADATA,
 			);
-			const filterClasses = [...globalExceptionFilters, ...routeFilterClasses];
+			// Route-level filters only; global filters run in onError above
+			const filterClasses = routeFilterClasses;
 
 			const method = (controller as Record<string, (...args: unknown[]) => unknown>)[
 				route.propertyKey
