@@ -20,12 +20,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 						{ emit: 'event', level: 'info' },
 					],
 		});
-		this.$on('connect' as never, () => {
-			this.logger.log('Database connected');
-		});
-		this.$on('disconnect' as never, () => {
-			this.logger.log('Database disconnected');
-		});
 		this.$on('warn' as never, (event: Prisma.LogEvent) => {
 			this.logger.warn(event.message);
 		});
