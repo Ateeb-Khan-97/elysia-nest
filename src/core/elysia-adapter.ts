@@ -176,7 +176,16 @@ export function registerRoutes(
 
 	// Global exception filters run in Elysia's app-level onError (catches all errors including validation)
 	if (globalExceptionFilters.length > 0) {
-		elysia = (elysia as { onError: (fn: (ctx: { error: Error; [k: string]: unknown }) => Promise<Response | unknown>) => Elysia }).onError(
+		elysia = (
+			elysia as {
+				onError: (
+					fn: (ctx: {
+						error: Error;
+						[k: string]: unknown;
+					}) => Promise<Response | unknown>,
+				) => Elysia;
+			}
+		).onError(
 			async (errContext: { error: Error; code?: string; [k: string]: unknown }) => {
 				const exception = errContext.error;
 				for (const FilterClass of globalExceptionFilters) {
