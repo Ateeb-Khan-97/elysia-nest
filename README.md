@@ -60,6 +60,20 @@ app.listen(3000);
 - **GET /cats** → `findAll()` (injected `AppService`).
 - **POST /cats** → `create(body)` with request body.
 
+With global guards, interceptors, and exception filters (and optional OpenAPI):
+
+```ts
+const app = createApp(AppModule, {
+  openapiPath: "/api/docs",
+  globalGuards: [AuthGuard],
+  globalInterceptors: [LoggingInterceptor],
+  globalExceptionFilters: [GlobalExceptionFilter],
+  openapiSecurityScheme: "bearerAuth",
+});
+await app.init(); // runs onModuleInit() on providers
+app.listen(3000);
+```
+
 ## Decorators
 
 | Decorator       | Scope    | Purpose                                      |
@@ -67,6 +81,8 @@ app.listen(3000);
 | `@Module(...)` | Class    | Declare imports, controllers, providers, exports |
 | `@Controller(path?)` | Class | Route prefix for this controller             |
 | `@Get(path?)`, `@Post(path?)`, `@Put(path?)`, `@Patch(path?)`, `@Delete(path?)` | Method | HTTP method + path |
+| `@Public()` | Class / Method | Bypass global guards for this controller or route |
+| `@UseGuards(...)`, `@UseInterceptors(...)`, `@UseFilters(...)` | Class / Method | Attach guards, interceptors, or exception filters |
 | `@Injectable()` | Class  | Register as provider (DI)                    |
 | `@Body()`, `@Param(key?)`, `@Query(key?)`, `@Headers(key?)` | Parameter | Bind handler args from context |
 | `@WebSocket(path?)` | Class | WebSocket gateway; path is combined with `@Controller()` path |
@@ -97,6 +113,16 @@ export class EventsController {
 ```
 
 - **GET /api/events/stream** or **POST /api/events/stream** → `text/event-stream`; consume with `EventSource` or `fetch` + `ReadableStream`.
+
+### Guards, interceptors, and error handling
+
+Pass **global** guards, interceptors, and exception filters in `createApp(Module, options)`:
+
+- **options.globalGuards** – Run before every route unless the route (or controller) is `@Public()`.
+- **options.globalInterceptors** – Wrap every route handler (e.g. logging, timing).
+- **options.globalExceptionFilters** – Run in Elysia’s **app-level `onError`**: all errors (handlers, validation, not found, etc.) are passed to these filters. Return a `Response` to send a custom error response.
+
+Route-level guards/interceptors/filters are attached with `@UseGuards()`, `@UseInterceptors()`, `@UseFilters()` on a class or method.
 
 ### WebSocket
 
@@ -135,9 +161,15 @@ app.listen(3000);
 
 ## API
 
-- **createApp(RootModule, options?)** – Builds module graph, DI container, and Elysia app; returns `{ getElysia(), listen(port?, host?) }`.
+- **createApp(RootModule, options?)** – Builds module graph, DI container, and Elysia app; returns `{ getElysia(), init(), destroy(), listen(port?, host?) }`.
   - **options.openapiPath** – If set (e.g. `"/api/docs"`), enables [OpenAPI](https://elysiajs.com/plugins/openapi.html) docs at that path; spec JSON at `{openapiPath}/json`.
+  - **options.globalGuards** – Guard classes applied to every non-`@Public()` route.
+  - **options.globalInterceptors** – Interceptor classes applied to every route.
+  - **options.globalExceptionFilters** – Exception filter classes; run in Elysia’s **`onError`** (app-level), so they handle all errors including validation and not-found.
+  - **options.openapiSecurityScheme** – Name (e.g. `"bearerAuth"`) so non-public routes show a lock in OpenAPI docs.
 - **app.getElysia()** – Raw Elysia instance (e.g. for tests or `.use()`).
+- **app.init()** – Async; runs `onModuleInit()` on all providers. Call before `listen()` if you use it.
+- **app.destroy()** – Async; runs `onModuleDestroy()` on all providers (e.g. on SIGTERM).
 - **app.listen(port?, host?)** – Starts the server (default port 3000, host `0.0.0.0`).
 
 ## Example and tests
@@ -147,8 +179,7 @@ bun run example
 bun test
 ```
 
-## Limitations (v1)
+## Limitations
 
-- No guards, interceptors, or pipes (can be added via Elysia’s `onBeforeHandle` / `onAfterHandle`).
-- No circular dependency resolution.
-- No built-in validation (optional Elysia `t` schema per route can be added later).
+- No circular dependency resolution in the DI container.
+- Body/query validation is per-route via `@Body(schema)` / `@Query(schema)` (Elysia `t` schemas).

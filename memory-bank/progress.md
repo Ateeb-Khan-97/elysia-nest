@@ -1,7 +1,7 @@
 # Progress
 
 ## Implementation status
-- **Task 002 (SSE by generator):** Complete. No @Sse decorator; adapter detects generator handlers and wraps with sse(); any HTTP method (GET, POST, etc.) can stream SSE. EventsController has GET and POST generator examples; README updated.
+- **Task 003 (README update):** Complete. README updated for guards, interceptors, global exception filters (onError), createApp options, init/destroy, and simplified limitations.
 
 ---
 *Updated during BUILD and REFLECT.*
