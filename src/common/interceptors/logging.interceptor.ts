@@ -1,8 +1,14 @@
-import { Injectable, Logger, type NestInterceptor, type ExecutionContext } from '@/core';
+import {
+	HttpException,
+	Injectable,
+	Logger,
+	type NestInterceptor,
+	type ExecutionContext,
+} from '@/core';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-	private readonly logger = new Logger(LoggingInterceptor.name);
+	private readonly logger = new Logger('Request');
 
 	async intercept(
 		context: ExecutionContext,
@@ -15,13 +21,20 @@ export class LoggingInterceptor implements NestInterceptor {
 		try {
 			const result = await next();
 			const ms = Date.now() - start;
-			this.logger.debug(`${method} ${path} +${ms}ms`);
+			const status = this.getStatusFromResult(result);
+			this.logger.debug(`${method} ${path} ${status} +${ms}ms`);
 			return result;
 		} catch (error) {
 			const ms = Date.now() - start;
-			this.logger.warn(`${method} ${path} +${ms}ms (error)`);
+			const status = error instanceof HttpException ? error.statusCode : 500;
+			this.logger.warn(`${method} ${path} ${status} +${ms}ms (error)`);
 			throw error;
 		}
+	}
+
+	private getStatusFromResult(result: unknown): number {
+		if (result instanceof Response) return result.status;
+		return 200;
 	}
 
 	private getMethod(context: ExecutionContext): string {

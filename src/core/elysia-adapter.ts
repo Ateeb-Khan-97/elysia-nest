@@ -25,6 +25,7 @@ import type {
 	NestInterceptor,
 } from './interfaces';
 import type { ResolvedApp } from './container';
+import { Logger } from './logger';
 
 function normalizePath(...segments: string[]): string {
 	const joined = segments.filter(Boolean).join('/').replace(/\/+/g, '/');
@@ -174,25 +175,53 @@ export function registerRoutes(
 	const globalExceptionFilters = options?.globalExceptionFilters ?? [];
 	const openapiSecurityScheme = options?.openapiSecurityScheme;
 
-	// Global exception filters run in Elysia's app-level onError (catches all errors including validation)
-	if (globalExceptionFilters.length > 0) {
+	// Global exception filters run in Elysia's app-level onError (catches all errors including validation/404)
+	const requestLogger = globalInterceptors.length > 0 ? new Logger('Request') : null;
+	if (globalExceptionFilters.length > 0 || requestLogger) {
 		elysia = (
 			elysia as {
 				onError: (
 					fn: (ctx: {
 						error: Error;
+						request?: Request;
 						[k: string]: unknown;
 					}) => Promise<Response | unknown>,
 				) => Elysia;
 			}
 		).onError(
-			async (errContext: { error: Error; code?: string; [k: string]: unknown }) => {
+			async (errContext: {
+				error: Error;
+				code?: string;
+				request?: Request;
+				[k: string]: unknown;
+			}) => {
 				const exception = errContext.error;
-				for (const FilterClass of globalExceptionFilters) {
-					const filter = resolveInstance<ExceptionFilter>(app, FilterClass);
-					const res = await filter.catch(exception, errContext);
-					if (res != null) return res;
+				let response: Response | undefined;
+				if (globalExceptionFilters.length > 0) {
+					for (const FilterClass of globalExceptionFilters) {
+						const filter = resolveInstance<ExceptionFilter>(app, FilterClass);
+						const res = await filter.catch(exception, errContext);
+						if (res != null) {
+							response = res;
+							break;
+						}
+					}
 				}
+				if (requestLogger) {
+					const req = errContext.request;
+					const method = (req?.method ?? 'UNKNOWN').toUpperCase();
+					let path = '/';
+					if (req?.url) {
+						try {
+							path = new URL(req.url).pathname;
+						} catch {
+							path = req.url;
+						}
+					}
+					const status = response?.status ?? 500;
+					requestLogger.warn(`${method} ${path} ${status} (error)`);
+				}
+				if (response != null) return response;
 				throw exception;
 			},
 		) as Elysia;
