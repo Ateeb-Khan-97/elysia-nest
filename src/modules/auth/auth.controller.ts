@@ -13,12 +13,7 @@ import {
 	UnauthorizedException,
 	type CookieJar,
 } from '@/core';
-import {
-	BackgroundTasksService,
-	CommonService,
-	EmailService,
-	ResponseMapper,
-} from '@/common';
+import { BackgroundTasksService, EmailService, ResponseMapper } from '@/common';
 import { UserService } from '../user/user.service';
 import { AuthSchema } from './auth.schema';
 import { AuthService, TokenType } from './auth.service';
@@ -28,7 +23,6 @@ import { AuthService, TokenType } from './auth.service';
 export class AuthController {
 	private readonly logger = new Logger(AuthController.name);
 	constructor(
-		private readonly commonService: CommonService,
 		private readonly authService: AuthService,
 		private readonly userService: UserService,
 		private readonly emailService: EmailService,
@@ -47,16 +41,8 @@ export class AuthController {
 		if (!(await Bun.password.verify(body.password, user.password)))
 			throw new UnauthorizedException('Invalid credentials');
 
-		const [accessToken, refreshToken] = await this.authService.login(user.id, cookie);
-
-		return ResponseMapper({
-			message: 'Sign in successful',
-			data: {
-				accessToken,
-				refreshToken,
-				user: this.commonService.exclude(user, ['password', 'isConfirmed', 'deletedAt']),
-			},
-		});
+		await this.authService.login(user.id, cookie);
+		return ResponseMapper({ message: 'Sign in successful' });
 	}
 
 	@Public()
@@ -96,7 +82,8 @@ export class AuthController {
 	@Public()
 	@Post('refresh-access')
 	async refreshAccess(
-		@Body(AuthSchema.RefreshAccessTokenSchema) body: AuthSchema.RefreshAccessTokenSchema,
+		@Body(AuthSchema.RefreshAccessTokenSchema)
+		body: AuthSchema.RefreshAccessTokenSchema,
 		@Cookie() cookie: CookieJar,
 	) {
 		const rt = body?.refreshToken ?? (cookie.refresh_token?.value as string | undefined);
@@ -106,20 +93,8 @@ export class AuthController {
 			const user = await this.userService.findOneById(userId);
 			if (!user || user.deletedAt) throw new NotFoundException('User not found');
 
-			const [accessToken, refreshToken] = await this.authService.login(userId, cookie);
-
-			return ResponseMapper({
-				message: 'Session refreshed',
-				data: {
-					accessToken,
-					refreshToken,
-					user: this.commonService.exclude(user, [
-						'password',
-						'isConfirmed',
-						'deletedAt',
-					]),
-				},
-			});
+			await this.authService.login(userId, cookie);
+			return ResponseMapper({ message: 'Session refreshed' });
 		} catch (error) {
 			this.logger.error('Error refreshing access token', error);
 			throw new InternalServerErrorException('Failed to refresh access token');
@@ -130,7 +105,7 @@ export class AuthController {
 	async signOut(@Cookie() cookie: CookieJar) {
 		cookie.access_token?.remove();
 		cookie.refresh_token?.remove();
-		return ResponseMapper({ message: 'Sign out successful' });
+		return ResponseMapper({ status: 204, message: 'Sign out successful' });
 	}
 
 	@Public()

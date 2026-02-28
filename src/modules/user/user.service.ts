@@ -7,21 +7,15 @@ export class UserService {
 	constructor(private readonly prismaService: PrismaService) {}
 
 	async findOneById(id: number): Promise<User | null> {
-		return this.prismaService.user.findUnique({
-			where: { id },
-		});
+		return this.prismaService.user.findUnique({ where: { id } });
 	}
 
 	async findOneByEmail(email: string): Promise<User | null> {
-		return this.prismaService.user.findUnique({
-			where: { email },
-		});
+		return this.prismaService.user.findUnique({ where: { email } });
 	}
 
 	async findOne(where: Prisma.UserWhereInput): Promise<User | null> {
-		return this.prismaService.user.findFirst({
-			where,
-		});
+		return this.prismaService.user.findFirst({ where });
 	}
 
 	async findAll(): Promise<User[]> {
@@ -29,21 +23,14 @@ export class UserService {
 	}
 
 	async create(data: Prisma.UserCreateInput): Promise<User> {
-		return this.prismaService.user.create({
-			data,
-		});
+		return this.prismaService.user.create({ data });
 	}
 
 	async update(id: number, data: Prisma.UserUpdateInput): Promise<User> {
-		return this.prismaService.user.update({
-			where: { id },
-			data,
-		});
+		return this.prismaService.user.update({ where: { id }, data });
 	}
 
-	async delete(id: number): Promise<User> {
-		return this.prismaService.user.delete({
-			where: { id },
-		});
+	async delete(id: number): Promise<void> {
+		await this.prismaService.user.delete({ where: { id } });
 	}
 }

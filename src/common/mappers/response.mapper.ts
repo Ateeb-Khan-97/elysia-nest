@@ -7,7 +7,7 @@ type ResponseMapperOptions = {
 export function ResponseMapper(options?: Partial<ResponseMapperOptions>) {
 	const responseOptions: ResponseMapperOptions = {
 		status: options?.status || 200,
-		message: options?.message || 'Success',
+		message: options?.message || 'OK',
 		data: options?.data || null,
 	};
 
@@ -18,8 +18,6 @@ export function ResponseMapper(options?: Partial<ResponseMapperOptions>) {
 			message: responseOptions.message,
 			data: responseOptions.data,
 		},
-		{
-			status: responseOptions.status,
-		},
+		{ status: responseOptions.status },
 	);
 }
