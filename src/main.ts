@@ -15,9 +15,7 @@ async function bootstrap(): Promise<void> {
 	await app.init();
 	const server = app.listen(env.PORT);
 	logger.log(`Application running on http://localhost:${env.PORT}`);
-	if (!isProduction) {
-		logger.log(`OpenAPI docs: http://localhost:${env.PORT}/api/docs`);
-	}
+	if (!isProduction) logger.log(`OpenAPI docs: http://localhost:${env.PORT}/api/docs`);
 
 	const shutdown = async (): Promise<void> => {
 		logger.log('Shutting down...');

@@ -55,11 +55,8 @@ export class AuthController {
 
 		const hashedPassword = await Bun.password.hash(body.password);
 		try {
-			const user = await this.userService.create({
-				email: body.email,
-				password: hashedPassword,
-				fullName: body.fullName,
-			});
+			body.password = hashedPassword;
+			const user = await this.userService.create(body);
 			const confirmationToken = await this.authService.signPayload(
 				user.id,
 				TokenType.Confirmation,
@@ -102,7 +99,7 @@ export class AuthController {
 	}
 
 	@Post('sign-out')
-	async signOut(@Cookie() cookie: CookieJar) {
+	signOut(@Cookie() cookie: CookieJar) {
 		cookie.access_token?.remove();
 		cookie.refresh_token?.remove();
 		return ResponseMapper({ status: 204, message: 'Sign out successful' });
@@ -111,18 +108,18 @@ export class AuthController {
 	@Public()
 	@Post('confirm-email')
 	async confirmEmail(
-		@Body(AuthSchema.ConfirmEmailSchema) body: AuthSchema.ConfirmEmailSchema,
+		@Body(AuthSchema.ConfirmEmailSchema) { token }: AuthSchema.ConfirmEmailSchema,
 	) {
-		let payload: { id: number };
+		let userId: number;
 		try {
-			payload = await this.authService.verifyToken(body.token, TokenType.Confirmation);
+			userId = (await this.authService.verifyToken(token, TokenType.Confirmation)).id;
 		} catch (error) {
 			this.logger.error('Error confirming email', error);
 			throw new UnauthorizedException('Invalid token');
 		}
-		const user = await this.userService.findOneById(payload.id);
+		const user = await this.userService.findOneById(userId);
 		if (!user) throw new NotFoundException('User not found');
-		await this.userService.update(payload.id, { isConfirmed: true });
+		await this.userService.updateById(userId, { isConfirmed: true });
 		return ResponseMapper({ message: 'Email confirmed' });
 	}
 }

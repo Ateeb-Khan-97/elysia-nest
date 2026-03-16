@@ -38,7 +38,7 @@ export class UserController {
 		@Body(UserSchema.UpdateUserSchema) body: UserSchema.UpdateUserSchema,
 	) {
 		try {
-			const user = await this.userService.update(userId, body);
+			const user = await this.userService.updateById(userId, body);
 			return ResponseMapper({
 				message: 'Profile updated successfully',
 				data: this.commonService.exclude(user, ['password', 'isConfirmed', 'deletedAt']),
